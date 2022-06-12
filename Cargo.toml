@@ -1,0 +1,15 @@
+[package]
+name = "permen-remuk"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type=["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2.80"
+
+# butuh getrandom dengan features "js" agar rand
+# bisa di-build untuk wasm
+getrandom = { version = "0.2.6", features = ["js"] }
+rand = "0.8.5"
