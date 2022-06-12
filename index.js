@@ -35,7 +35,6 @@ function renderPapan(state) {
   app.style.gridTemplate = `repeat(${data.length}, auto) / repeat(${data[0].length}, auto)`;
 
   data.forEach((row, y) => {
-    // permenHtml += '<div class="row">';
     row.forEach((cell, x) => {
       let elm = document.createElement("a");
       elm.setAttribute("id", `permen${y}${x}`);
@@ -131,7 +130,6 @@ function renderPapan(state) {
       app.appendChild(elm);
       scoreCounter.innerText = score;
     });
-    // permenHtml += '</div>';
   });
 
   if (!wasm.bisaJalan()) {

@@ -190,19 +190,13 @@ pub struct Papan {
 
 impl Display for Papan {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // write!(f, "\n")?;
-        // write!(f, "   ")?;
-        // for i in 0..self.isi[0].len() { write!(f, "{} ", i)?; }
-        // write!(f, "\n")?;
-        // for (y, baris) in self.isi.iter().enumerate() {
-        //     write!(f, "{} ", y)?;
         for baris in self.isi.iter() {
             for permen in baris {
                 write!(f, "{} ", permen)?;
             }
             write!(f, "\n")?;
         }
-        // write!(f, "\n")?;
+
         Ok(())
     }
 }
@@ -351,58 +345,6 @@ impl Papan {
         self.isi[0][pos.1].acak_warna();
     }
 
-    pub fn tukar_dan_remukan(&self, pos1: Posisi, pos2: Posisi) -> (usize, String) {
-        self.tukar(pos1, pos2);
-        let mut dempet = Dempet::new();
-
-        dempet.tambah_vek(self.cek_dempet(pos1, 3))
-            .tambah_vek(self.cek_dempet(pos2, 3))
-            .urutkan();
-
-        let mut total_remuk: usize = 0;
-        let mut output = String::new();
-
-        if dempet.len() == 0 {
-            self.tukar(pos2, pos1);
-            return (total_remuk, output);
-        }
-
-        output.push_str(&format!("{}\n{:?}\n", self, dempet));
-        total_remuk += 1;
-
-        for p in dempet.iter() {
-            self.remukan(*p);
-        }
-
-        let mut tk: Vec<Posisi>;
-        loop {
-            tk = dempet.kolom_berubah();
-            dempet.kosongkan();
-            for mut pos in tk {
-                loop {
-                    dempet.tambah_vek(self.cek_dempet(pos, 3));
-                    if pos.0 == 0 { break } else { pos.0 -= 1 };
-                }
-            }
-
-            if dempet.len() == 0 {
-                output.push_str(&format!("{}\n", self));
-                break;
-            }
-
-            dempet.urutkan();
-
-            output.push_str(&format!("{}\n{:?}\n", self, dempet));
-            total_remuk += 1;
-
-            for p in dempet.iter() {
-                self.remukan(*p);
-            }
-        }
-
-        (total_remuk, output)
-    }
-
     /// Mengecek apakah permen dapat ditukar
     pub fn mungkin_ditukar(&self, pos: Posisi) -> bool {
         let mut mungkin = false;
@@ -411,14 +353,14 @@ impl Papan {
             let y0 = pos.0 as i16 + y;
             let x0 = pos.1 as i16 + x;
             let pos_target = (y0 as usize, x0 as usize);
-            // println!("curr: {:?} -> target: {:?}", pos, pos_target);
+
             self.tukar(pos, pos_target);
             if self.cek_dempet(pos_target, 3).len() > 0 {
-                // println!("{}", self.cek_dempet(pos_target, 3).len());
                 self.tukar(pos, pos_target);
                 return true
             }
             self.tukar(pos, pos_target);
+
             false
         };
 
