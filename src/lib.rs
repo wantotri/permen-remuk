@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 use permenremuk::*;
 
 thread_local! {
-    static PAPAN: Papan = Papan::new(6, 3);
+    static PAPAN: Papan = Papan::new(7, 3);
     static DEMPET: RefCell<Dempet> = RefCell::new(Dempet::new());
 }
 

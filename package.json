@@ -12,6 +12,6 @@
     "prebuild": "wasm-pack build --no-typescript",
     "build": "webpack",
     "postbuild": "serve -s dist",
-    "updatejs": "webpack && serve -s dist",
+    "updatejs": "webpack && serve -s dist"
   }
 }
