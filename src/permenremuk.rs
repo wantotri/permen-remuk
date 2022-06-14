@@ -61,11 +61,41 @@ impl Permen {
         Permen { warna: RefCell::new(warna) }
     }
 
+    /// Mengambil warna permen
+    ///
+    /// ### Example
+    ///
+    /// ```
+    /// use crate::permen_remuk::permenremuk::{Permen, Warna};
+    ///
+    /// let p = Permen::new(Warna::Merah);
+    ///
+    /// assert_eq!(Warna::Merah, p.get_warna());
+    /// ```
+    pub fn get_warna(&self) -> Warna {
+        self.warna.borrow().clone()
+    }
+
+    /// Menentukan warna untuk permen
+    ///
+    /// ### Example
+    /// ```
+    /// use crate::permen_remuk::permenremuk::{Permen, Warna};
+    ///
+    /// let p = Permen::new(Warna::Merah);
+    /// p.set_warna(Warna::Kuning);
+    ///
+    /// assert_eq!(Warna::Kuning, p.get_warna());
+    /// ```
+    pub fn set_warna(&self, warna: Warna) {
+        *self.warna.borrow_mut() = warna;
+    }
+
     /// Mengacak warna yang sebelumnya sudah ditentukan
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::{Permen,Warna};
+    /// use crate::permen_remuk::permenremuk::{Permen, Warna};
     ///
     /// let p = Permen::new(Warna::Merah);
     /// p.acak_warna();
@@ -73,23 +103,27 @@ impl Permen {
     /// assert_ne!(*p.warna.borrow(), Warna::Merah);
     /// ```
     pub fn acak_warna(&self) {
-        let warna_awal = self.warna.borrow_mut().clone();
-        let mut warna_akhir = self.warna.borrow_mut().clone();
+        let warna_awal = self.get_warna();
+        let mut warna_akhir = self.get_warna();
 
         while warna_awal == warna_akhir {
-            *self.warna.borrow_mut() = rand::random();
-            warna_akhir = self.warna.borrow_mut().clone();
+            self.set_warna(rand::random());
+            warna_akhir = self.get_warna();
         }
-    }
-
-    pub fn set_warna(&self, warna: Warna) {
-        *self.warna.borrow_mut() = warna;
     }
 }
 
 #[derive(Debug)]
 pub struct Dempet {
     pub vektor: Vec<Posisi>
+}
+
+impl Deref for Dempet {
+    type Target = Vec<Posisi>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.vektor
+    }
 }
 
 impl Dempet {
@@ -103,7 +137,7 @@ impl Dempet {
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::Dempet;
+    /// use crate::permen_remuk::permenremuk::Dempet;
     ///
     /// let mut dempet = Dempet::new();
     /// dempet.tambah((1,1)).tambah((1,1));
@@ -122,7 +156,7 @@ impl Dempet {
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::Dempet;
+    /// use crate::permen_remuk::permenremuk::Dempet;
     ///
     /// let mut dempet = Dempet::new();
     /// dempet.tambah((1,1)).tambah_vek(vec![(1,1),(2,2)]);
@@ -152,6 +186,7 @@ impl Dempet {
         self.vektor.len()
     }
 
+    /// Mengambil mana saja kolom yang berubah
     pub fn kolom_berubah(&self) -> Vec<Posisi> {
         let mut maks_y = 0;
         let mut min_x = 100;
@@ -164,14 +199,6 @@ impl Dempet {
         }
 
         (min_x..=maks_x).map(|x| (maks_y, x)).collect()
-    }
-}
-
-impl Deref for Dempet {
-    type Target = Vec<Posisi>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.vektor
     }
 }
 
@@ -196,7 +223,6 @@ impl Display for Papan {
             }
             write!(f, "\n")?;
         }
-
         Ok(())
     }
 }
@@ -211,6 +237,7 @@ impl Papan {
         Papan { ukuran: ukuran_papan, ragam_warna, isi }
     }
 
+    /// Membuat isian baru agar tidak ada permen yang dempet
     pub fn isian_baru(ukuran: usize) -> Isian {
         let isi: Isian =
             (0..ukuran).map(|_| {
@@ -243,14 +270,19 @@ impl Papan {
 
     /// Mengambil warna permen pada Posisi pos
     pub fn get_warna(&self, pos: Posisi) -> Warna {
-        self.isi[pos.0][pos.1].warna.borrow().clone()
+        self.isi[pos.0][pos.1].get_warna()
+    }
+
+    /// Menentukan warna permen pada Posisi pos
+    pub fn set_warna(&self, pos: Posisi, warna: Warna) {
+        self.isi[pos.0][pos.1].set_warna(warna)
     }
 
     /// Menukar warna dua permen yang bersebelahan
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::Papan;
+    /// use crate::permen_remuk::permenremuk::Papan;
     ///
     /// let papan = Papan::new(3, 3);
     /// let warna_lama = papan.isi[0][0].warna.clone();
@@ -266,59 +298,71 @@ impl Papan {
         }
         let p1 = self.isi[pos1.0][pos1.1].clone();
         let p2 = self.isi[pos2.0][pos2.1].clone();
-        self.isi[pos1.0][pos1.1].set_warna(p2.warna.borrow().clone());
-        self.isi[pos2.0][pos2.1].set_warna(p1.warna.borrow().clone());
+        self.set_warna(pos1, p2.get_warna());
+        self.set_warna(pos2, p1.get_warna());
+    }
+
+    /// Meremukan permen dengan mengganti permen dengan permen di atasnya
+    pub fn remukan(&self, pos: Posisi) {
+        let mut ps = pos.clone();
+        while ps.0 != 0 {
+            // ganti warna permen dengan warna permen di atas permen tersebut
+            self.set_warna((ps.0, pos.1), self.get_warna((ps.0-1, pos.1)));
+            ps.0 -= 1;
+        }
+        self.set_warna((0, pos.1), rand::random());
+    }
+
+    // Mengecek permen "dempet" horizontal
+    fn cek_horizontal(&self, pa: Posisi, tk: usize) -> Vec<Posisi> {
+        let mut temp = Vec::<Posisi>::new();
+        for idx in 0..self.ukuran {
+            if self.get_warna((pa.0, idx)) == self.get_warna(pa) {
+                temp.push((pa.0, idx));
+                continue;
+            }
+            if idx > pa.1 { break }
+            if temp.len() != 0 && temp.len() < tk { temp = vec![] }
+            else {
+                if temp.iter().any(|tup| *tup == pa) { break }
+                else {
+                    temp = vec![];
+                    continue;
+                }
+            }
+        }
+        if temp.len() < tk { temp = vec![] }
+        temp
+    }
+
+    // Mengecek permen "dempet" vertikal
+    fn cek_vertikal(&self, pa: Posisi, tk: usize) -> Vec<Posisi> {
+        let mut temp = Vec::<Posisi>::new();
+        for idx in 0..self.ukuran {
+            if self.get_warna((idx, pa.1)) == self.get_warna(pa) {
+                temp.push((idx, pa.1));
+                continue;
+            }
+            if idx > pa.0 { break }
+            if temp.len() != 0 && temp.len() < tk { temp = vec![] }
+            else {
+                if temp.iter().any(|tup| *tup == pa) { break }
+                else {
+                    temp = vec![];
+                    continue;
+                }
+            }
+        }
+        if temp.len() < tk { temp = vec![] }
+        temp
     }
 
     /// Mengecek permen "dempet"
     /// (>=3 permen dengan warna yang sama saling besebelahan)
-    ///
-    /// cek ke atas, bawah, kiri, kanan dari posisi awal, misal:
-    ///
-    /// ```{bash}
-    /// - - 0 - -    - 0 - - -   X 0 0 - -
-    /// - - 0 - -    0 X 0 0 -   0 - - - -
-    /// 0 0 X 0 0    - 0 - - -   0 - - - -
-    /// - - 0 - -    - 0 - - -   - - - - -
-    /// - - 0 - -    - - - - -   - - - - -
-    /// ```
     pub fn cek_dempet(&self, pa: Posisi, tk: usize) -> Vec<Posisi> {
         // pa -> posisi awal | tk -> total kembar | tw -> target warna | pd -> posisi dempet
-        // b_at -> batas atas | b_ba -> batas bawah | b_ki -> batas kiri | b_ka -> batas kanan
-        let tw = self.get_warna(pa);
-        let b_ki = if pa.1 < tk { 0 } else { pa.1 - (tk-1) };
-        let b_ka = if pa.1 + tk > self.ukuran { self.ukuran } else { pa.1 + tk };
-
-        let mut temp_x = Vec::<Posisi>::new();
-        for (idx, x) in (b_ki..b_ka).enumerate() {
-            if self.get_warna((pa.0, x)) == tw {
-                temp_x.push((pa.0, x));
-            } else {
-                match idx {
-                    0 => continue,
-                    _ if idx == tk => break,
-                    _ => if temp_x.len() < tk { temp_x = vec![] }
-                }
-            }
-        }
-        if temp_x.len() < tk { temp_x = vec![] }
-
-        let b_at = if pa.0 < tk { 0 } else { pa.0 - (tk-1) };
-        let b_ba = if pa.0 + tk > self.ukuran { self.ukuran } else { pa.0 + tk };
-
-        let mut temp_y = Vec::<Posisi>::new();
-        for (idx, y) in (b_at..b_ba).enumerate() {
-            if self.get_warna((y, pa.1)) == tw {
-                temp_y.push((y, pa.1));
-            } else {
-                match idx {
-                    0 => continue,
-                    _ if idx == tk => break,
-                    _ => if temp_y.len() < tk { temp_y = vec![] }
-                }
-            }
-        }
-        if temp_y.len() < tk { temp_y = vec![] }
+        let temp_x = self.cek_horizontal(pa, tk);
+        let temp_y = self.cek_vertikal(pa, tk);
 
         let mut pd = Vec::<Posisi>::new();
         let mut temp_xy = temp_x;
@@ -332,17 +376,6 @@ impl Papan {
         }
 
         pd
-    }
-
-    /// Meremukan permen dengan mengganti permen dengan permen di atasnya
-    pub fn remukan(&self, pos: Posisi) {
-        let mut ps = pos.clone();
-        while ps.0 != 0 {
-            // ganti warna permen dengan warna permen di atas permen tersebut
-            self.isi[ps.0][pos.1].set_warna(self.get_warna((ps.0-1, pos.1)));
-            ps.0 -= 1;
-        }
-        self.isi[0][pos.1].acak_warna();
     }
 
     /// Mengecek apakah permen dapat ditukar
@@ -404,5 +437,247 @@ impl Papan {
             result.push_str(&format!("{}:{} ", pos.0, pos.1))
         }
         result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn vektor_warna() -> Vec<Warna> {
+        vec![
+            Warna::Merah,
+            Warna::Jingga,
+            Warna::Kuning,
+            Warna::Hijau,
+            Warna::Biru,
+            Warna::Nila,
+            Warna::Ungu,
+        ]
+    }
+
+    #[test]
+    fn permen_new() {
+        let permen = Permen::new(Warna::Biru);
+        assert_eq!(*permen.warna.borrow(), Warna::Biru);
+    }
+
+    #[test]
+    fn permen_get_warna() {
+        let permen = Permen::new(Warna::Biru);
+        assert_eq!(permen.get_warna(), Warna::Biru);
+    }
+
+    #[test]
+    fn permen_set_warna() {
+        let permen = Permen::new(Warna::Biru);
+        permen.set_warna(Warna::Merah);
+        assert_eq!(permen.get_warna(), Warna::Merah);
+    }
+
+    #[test]
+    fn permen_acak_warna() {
+        let permen = Permen::new(Warna::Merah);
+        permen.acak_warna();
+
+        for _ in 0..100 {
+            assert_ne!(permen.get_warna(), Warna::Merah);
+        }
+    }
+
+    #[test]
+    fn dempet_new() {
+        let dempet = Dempet::new();
+        assert_eq!(dempet.vektor, vec![]);
+    }
+
+    #[test]
+    fn dempet_tambah() {
+        let mut dempet = Dempet::new();
+        dempet.tambah((0, 0)).tambah((1, 1));
+        assert_eq!(dempet.len(), 2);
+        dempet.tambah((0,0));
+        assert_eq!(dempet.len(), 2);
+    }
+
+    #[test]
+    fn dempet_kosongkan() {
+        let mut dempet = Dempet::new();
+        dempet.tambah((0, 0)).tambah((1, 1));
+        dempet.kosongkan();
+        assert_eq!(dempet.len(), 0);
+    }
+
+    #[test]
+    fn dempet_tambah_vektor() {
+        let mut dempet = Dempet::new();
+        dempet.tambah_vek(vec![(1, 0), (3, 0), (2, 0)]);
+        assert_eq!(dempet.len(), 3);
+    }
+
+    #[test]
+    fn dempet_urutkan() {
+        let mut dempet = Dempet::new();
+        dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
+        dempet.urutkan();
+        assert_eq!(dempet.vektor, vec![(1, 0), (2, 0), (3, 0)]);
+    }
+
+    #[test]
+    fn dempet_kolom_berubah() {
+        let mut dempet = Dempet::new();
+        dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
+        dempet.tambah_vek(vec![(1, 0), (1, 1), (1, 2)]);
+        dempet.urutkan();
+        let kolom_berubah = dempet.kolom_berubah();
+        assert_eq!(kolom_berubah, vec![(3, 0), (3, 1), (3, 2)]);
+    }
+
+    #[test]
+    fn papan_new() {
+        let papan = Papan::new(5, 3);
+        assert_eq!(papan.isi.len(), 5);
+        assert_eq!(papan.isi[0].len(), 5);
+
+        // assert isi dari papan adalah Warna
+        let vektor_warna = vektor_warna();
+
+        for baris in papan.isi.iter() {
+            for permen in baris.iter() {
+                assert!(vektor_warna.iter().any(|warna| {
+                    permen.get_warna() == *warna
+                }));
+            }
+        }
+    }
+
+    #[test]
+    fn papan_isian_baru() {
+        let isian = Papan::isian_baru(3);
+
+        // assert isi dari isian adalah Warna
+        let vektor_warna = vektor_warna();
+
+        for baris in isian.iter() {
+            for permen in baris.iter() {
+                assert!(vektor_warna.iter().any(|warna| {
+                    permen.get_warna() == *warna
+                }));
+            }
+        }
+
+        // assert tidak mungkin ada dempet (3 warna yang sama bersebelahan)
+        for _ in 0..100 {
+            let isian = Papan::isian_baru(3);
+            let warna0 = isian[0][0].get_warna();
+            let warna1 = isian[0][1].get_warna();
+            let warna2 = isian[0][2].get_warna();
+            assert!( !(warna0 == warna1 && warna1 == warna2) );
+        }
+    }
+
+    #[test]
+    fn papan_get_warna() {
+        let papan = Papan::new(5, 3);
+        let warna = papan.isi[0][0].warna.borrow().clone();
+        assert_eq!(papan.get_warna((0, 0)), warna);
+    }
+
+    #[test]
+    fn papan_set_warna() {
+        let papan = Papan::new(5, 3);
+        papan.set_warna((0, 0), Warna::Merah);
+        assert_eq!(papan.get_warna((0, 0)), Warna::Merah);
+    }
+
+    #[test]
+    fn papan_tukar() {
+        let papan = Papan::new(3, 3);
+        let warna0 = papan.get_warna((0, 0));
+        papan.tukar((0,0), (0,1));
+        let warna1 = papan.get_warna((0, 1));
+        assert_eq!(warna0, warna1);
+    }
+
+    #[test]
+    fn papan_remukan() {
+        let papan = Papan::new(3, 3);
+        let warna0 = papan.get_warna((0, 0));
+        let warna1 = papan.get_warna((1, 0));
+        papan.remukan((2, 0));
+        assert_eq!(papan.get_warna((2, 0)), warna1);
+        assert_eq!(papan.get_warna((1, 0)), warna0);
+    }
+
+    #[test]
+    fn papan_cek_horizontal() {
+        let papan = Papan::new(7, 3);
+        for i in 0..papan.ukuran {
+            papan.set_warna((0, i), Warna::Merah);
+        }
+        let dempet = papan.cek_horizontal((0, 0), 3);
+        assert_eq!(dempet.len(), 7);
+
+        papan.set_warna((0, 3), Warna::Biru);
+        let dempet = papan.cek_horizontal((0, 0), 3);
+        assert_eq!(dempet.len(), 3);
+        let dempet = papan.cek_horizontal((0, 6), 3);
+        assert_eq!(dempet.len(), 3);
+    }
+
+    #[test]
+    fn papan_cek_vertikal() {
+        let papan = Papan::new(7, 3);
+        for i in 0..papan.ukuran {
+            papan.set_warna((i, 0), Warna::Merah);
+        }
+        let dempet = papan.cek_vertikal((0, 0), 3);
+        assert_eq!(dempet.len(), 7);
+
+        papan.set_warna((3, 0), Warna::Biru);
+        let dempet = papan.cek_vertikal((0, 0), 3);
+        assert_eq!(dempet.len(), 3);
+        let dempet = papan.cek_vertikal((6, 0), 3);
+        assert_eq!(dempet.len(), 3);
+    }
+
+    #[test]
+    fn papan_cek_dempet() {
+        let papan = Papan::new(7, 3);
+        for i in 0..papan.ukuran {
+            papan.set_warna((i, 0), Warna::Merah);
+            papan.set_warna((0, i), Warna::Merah);
+        }
+        let dempet = papan.cek_dempet((0, 0), 3);
+        assert_eq!(dempet.len(), 13);
+    }
+
+    #[test]
+    fn papan_mungkin_ditukar() {
+        let papan = Papan::new(5, 3);
+        papan.set_warna((0, 0), Warna::Merah);
+        papan.set_warna((1, 1), Warna::Merah);
+        papan.set_warna((1, 2), Warna::Merah);
+        assert!(papan.mungkin_ditukar((0, 0)));
+    }
+
+    #[test]
+    fn papan_cek_kemungkinan() {
+        let papan = Papan::new(5, 3);
+        papan.set_warna((0, 0), Warna::Merah);
+        papan.set_warna((1, 1), Warna::Merah);
+        papan.set_warna((1, 2), Warna::Merah);
+        assert!(papan.cek_kemungkinan().len() >= 1);
+    }
+
+    #[test]
+    fn papan_cek_kemungkinan_str() {
+        let papan = Papan::new(5, 3);
+        let mut result = String::new();
+        let vektor_kemungkinan = papan.cek_kemungkinan();
+        for pos in vektor_kemungkinan {
+            result.push_str(&format!("{}:{} ", pos.0, pos.1))
+        }
+        assert_eq!(papan.cek_kemungkinan_str(), result);
     }
 }
