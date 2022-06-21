@@ -64,13 +64,10 @@ impl Permen {
     /// Mengambil warna permen
     ///
     /// ### Example
-    ///
     /// ```
-    /// use crate::permen_remuk::permenremuk::{Permen, Warna};
-    ///
-    /// let p = Permen::new(Warna::Merah);
-    ///
-    /// assert_eq!(Warna::Merah, p.get_warna());
+    /// # use crate::permen_remuk::permenremuk::{Permen, Warna};
+    /// let permen = Permen::new(Warna::Merah);
+    /// assert_eq!(permen.get_warna(), Warna::Merah);
     /// ```
     pub fn get_warna(&self) -> Warna {
         self.warna.borrow().clone()
@@ -80,12 +77,10 @@ impl Permen {
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::permenremuk::{Permen, Warna};
-    ///
-    /// let p = Permen::new(Warna::Merah);
-    /// p.set_warna(Warna::Kuning);
-    ///
-    /// assert_eq!(Warna::Kuning, p.get_warna());
+    /// # use crate::permen_remuk::permenremuk::{Permen, Warna};
+    /// # let permen = Permen::new(Warna::Merah);
+    /// permen.set_warna(Warna::Kuning);
+    /// # assert_eq!(permen.get_warna(), Warna::Kuning);
     /// ```
     pub fn set_warna(&self, warna: Warna) {
         *self.warna.borrow_mut() = warna;
@@ -95,12 +90,10 @@ impl Permen {
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::permenremuk::{Permen, Warna};
-    ///
-    /// let p = Permen::new(Warna::Merah);
-    /// p.acak_warna();
-    ///
-    /// assert_ne!(*p.warna.borrow(), Warna::Merah);
+    /// # use crate::permen_remuk::permenremuk::{Permen, Warna};
+    /// # let permen = Permen::new(Warna::Merah);
+    /// permen.acak_warna();
+    /// # assert_ne!(permen.get_warna(), Warna::Merah);
     /// ```
     pub fn acak_warna(&self) {
         let warna_awal = self.get_warna();
@@ -120,7 +113,6 @@ pub struct Dempet {
 
 impl Deref for Dempet {
     type Target = Vec<Posisi>;
-
     fn deref(&self) -> &Self::Target {
         &self.vektor
     }
@@ -137,11 +129,9 @@ impl Dempet {
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::permenremuk::Dempet;
-    ///
-    /// let mut dempet = Dempet::new();
+    /// # use crate::permen_remuk::permenremuk::Dempet;
+    /// # let mut dempet = Dempet::new();
     /// dempet.tambah((1,1)).tambah((1,1));
-    ///
     /// assert_eq!(dempet.len(), 1);
     /// ```
     pub fn tambah(&mut self, pos: Posisi) -> &mut Self {
@@ -152,16 +142,17 @@ impl Dempet {
         self
     }
 
-    /// Menambahkan vektor Posisi ke dalam vektor Dempet
+    /// Menambahkan vektor Posisi ke dalam vektor Dempet.
+    /// Jika pos sudah ada di dalam vektor Dempet,
+    /// pos tersebut tidak ditambahkan
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::permenremuk::Dempet;
-    ///
-    /// let mut dempet = Dempet::new();
+    /// # use crate::permen_remuk::permenremuk::Dempet;
+    /// # let mut dempet = Dempet::new();
     /// dempet.tambah((1,1)).tambah_vek(vec![(1,1),(2,2)]);
-    ///
     /// assert_eq!(dempet.len(), 2);
+    /// ```
     pub fn tambah_vek(&mut self, vektor: Vec<Posisi>) -> &mut Self {
         for vek in vektor {
             self.tambah(vek);
@@ -170,23 +161,59 @@ impl Dempet {
     }
 
     /// Mengurutkan vektor Dempet (a,b) berdasarkan a
+    ///
+    /// ### Example
+    /// ```
+    /// # use crate::permen_remuk::permenremuk::Dempet;
+    /// # let mut dempet = Dempet::new();
+    /// dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
+    /// dempet.urutkan();
+    /// assert_eq!(dempet.vektor, vec![(1, 0), (2, 0), (3, 0)]);
+    /// ```
     pub fn urutkan(&mut self) -> &mut Self {
         self.vektor.sort_by_key(|tup| tup.0);
         self
     }
 
     /// Mengosongkan vektor Dempet
+    ///
+    /// ### Example
+    /// ```
+    /// # use crate::permen_remuk::permenremuk::Dempet;
+    /// # let mut dempet = Dempet::new();
+    /// dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
+    /// dempet.kosongkan();
+    /// assert_eq!(dempet.len(), 0);
+    /// ```
     pub fn kosongkan(&mut self) ->&mut Self {
         self.vektor = vec![];
         self
     }
 
     /// Panjang vektor Dempet
+    ///
+    /// ### Example
+    /// ```
+    /// # use crate::permen_remuk::permenremuk::Dempet;
+    /// # let mut dempet = Dempet::new();
+    /// dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
+    /// assert_eq!(dempet.len(), dempet.vektor.len());
+    /// ```
     pub fn len(&self) -> usize {
         self.vektor.len()
     }
 
     /// Mengambil mana saja kolom yang berubah
+    ///
+    /// ### Example
+    /// ```
+    /// # use crate::permen_remuk::permenremuk::Dempet;
+    /// # let mut dempet = Dempet::new();
+    /// dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
+    /// dempet.tambah_vek(vec![(1, 0), (1, 1), (1, 2)]);
+    /// let kolom_berubah = dempet.kolom_berubah();
+    /// assert_eq!(kolom_berubah, vec![(3, 0), (3, 1), (3, 2)]);
+    /// ```
     pub fn kolom_berubah(&self) -> Vec<Posisi> {
         let mut maks_y = 0;
         let mut min_x = 100;
@@ -282,14 +309,12 @@ impl Papan {
     ///
     /// ### Example
     /// ```
-    /// use crate::permen_remuk::permenremuk::Papan;
-    ///
-    /// let papan = Papan::new(3, 3);
-    /// let warna_lama = papan.isi[0][0].warna.clone();
+    /// # use crate::permen_remuk::permenremuk::Papan;
+    /// # let papan = Papan::new(3, 3);
+    /// # let warna_lama = papan.get_warna((0, 0));
     /// papan.tukar((0,0), (0,1));
-    /// let warna_baru = papan.isi[0][1].warna.clone();
-    ///
-    /// assert_eq!(warna_lama, warna_baru);
+    /// # let warna_baru = papan.get_warna((0, 1));
+    /// # assert_eq!(warna_lama, warna_baru);
     /// ```
     pub fn tukar(&self, pos1: Posisi, pos2: Posisi) {
         // hanya permen yang bersebelahan yang bisa ditukar
@@ -524,11 +549,17 @@ mod tests {
     }
 
     #[test]
+    fn dempet_len() {
+        let mut dempet = Dempet::new();
+        dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
+        assert_eq!(dempet.len(), dempet.vektor.len());
+    }
+
+    #[test]
     fn dempet_kolom_berubah() {
         let mut dempet = Dempet::new();
         dempet.tambah_vek(vec![(3, 0), (1, 0), (2, 0)]);
         dempet.tambah_vek(vec![(1, 0), (1, 1), (1, 2)]);
-        dempet.urutkan();
         let kolom_berubah = dempet.kolom_berubah();
         assert_eq!(kolom_berubah, vec![(3, 0), (3, 1), (3, 2)]);
     }
@@ -541,7 +572,6 @@ mod tests {
 
         // assert isi dari papan adalah Warna
         let vektor_warna = vektor_warna();
-
         for baris in papan.isi.iter() {
             for permen in baris.iter() {
                 assert!(vektor_warna.iter().any(|warna| {
@@ -557,7 +587,6 @@ mod tests {
 
         // assert isi dari isian adalah Warna
         let vektor_warna = vektor_warna();
-
         for baris in isian.iter() {
             for permen in baris.iter() {
                 assert!(vektor_warna.iter().any(|warna| {

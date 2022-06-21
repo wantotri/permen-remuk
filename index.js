@@ -11,8 +11,7 @@ petunjukBtn.addEventListener("click", e => {
     vk.forEach(pos => {
       let permen = document.getElementById(`permen${pos[0]}${pos[1]}`);
       permen.classList.remove("petunjuk", "wiggle");
-      // trigger a DOM reflow
-      void permen.offsetWidth;
+      void permen.offsetWidth;  // trigger a DOM reflow
       permen.classList.add("petunjuk", "wiggle");
     })
   }
@@ -26,7 +25,6 @@ function renderPapan(state) {
   let scoreCounter = document.getElementById("score");
   let app = document.getElementById("app");
   app.innerHTML = '';
-  let permenHtml = '';
 
   let data = state.split("\n").map((row) => row.trim().split(/\s+/));
   data.pop();  // remove the last row because it is empty
